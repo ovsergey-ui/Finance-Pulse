@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Finance Pulse | Мобильная версия</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/index.css">
+  <style>
+    /* Mobile-specific ergonomic active tab scaling */
+    .tab-active {
+      color: #2563eb !important;
+      transform: translateY(-2px);
+    }
+    .tab-active svg {
+      stroke-width: 2.5px;
+      transform: scale(1.1);
+    }
+    /* Safe Area helper for mobile notches and physical bars */
+    .safe-bottom {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+  </style>
+</head>
+<body class="bg-gray-50/80 font-sans text-gray-900 antialiased min-h-screen pb-28 select-none">
+
+  <!-- Mobile Wrapper -->
+  <div id="mobile-app" class="max-w-md mx-auto min-h-screen flex flex-col relative px-4 pt-6">
+    
+    <!-- Top Bar -->
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <h1 class="text-base font-black tracking-tight text-gray-950 uppercase">Pulse Mobile</h1>
+          <p class="text-[9px] font-bold text-gray-400 tracking-wider">Семейный бюджет</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- Currency Selector -->
+        <select id="currency-selector" class="bg-white/90 backdrop-blur-md border border-gray-100 rounded-2xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 cursor-pointer shadow-sm">
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+          <option value="RUB">RUB</option>
+        </select>
+        
+        <!-- Toggle Back to Desktop -->
+        <a href="index.html?forceDesktop=true" class="bg-gray-100 hover:bg-gray-200 text-gray-650 p-2.5 rounded-2xl transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="12" x="3" y="4" rx="2" ry="2"/><line x1="12" x2="12" y1="20" y2="16"/><line x1="8" x2="16" y1="20" y2="20"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- Global Exceeded Budget Notification Alert -->
+    <div id="budget-alert-container" class="mb-4 hidden"></div>
+
+    <!-- MAIN SCREENS CONTAINER -->
+    <main class="flex-1 w-full flex flex-col">
+      
+      <!-- SCREEN 1: DASHBOARD -->
+      <section id="screen-home" class="space-y-5 animate-fade-up">
+        <!-- Main Card with Balance & Budget badge -->
+        <div class="bg-gradient-to-br from-gray-900 via-slate-900 to-indigo-950 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-950/15">
+          <div class="relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">Ваш баланс</span>
+                <!-- Budget period & val -->
+                <span id="budget-badge" class="flex items-center gap-1.5 py-1 px-3.5 bg-white/10 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-wider backdrop-blur-md cursor-pointer active:scale-95 transition-all">
+                  <span id="budget-badge-period">Лимиты расходов:</span>
+                  <span id="budget-badge-val">Установить</span>
+                </span>
+              </div>
+              
+              <div id="total-balance" class="text-4xl font-extrabold tracking-tighter transition-all">
+                0,00 ₽
+              </div>
+            </div>
+
+            <!-- Mini stats grid -->
+            <div class="grid grid-cols-2 gap-4 mt-8 pt-5 border-t border-white/10">
+              <div class="space-y-1">
+                <span class="text-[9px] font-bold text-white/40 uppercase tracking-widest block">Доходы</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
+                  <span id="total-income" class="text-sm font-black text-green-400">0,00 ₽</span>
+                </div>
+              </div>
+              <div id="expenses-container" class="space-y-1">
+                <span id="expenses-label" class="text-[9px] font-bold text-white/40 uppercase tracking-widest block transition-colors">Расходы</span>
+                <div class="flex items-center gap-1.5">
+                  <span id="expenses-dot" class="w-2 h-2 rounded-full bg-blue-500 shrink-0 transition-all"></span>
+                  <span id="total-expenses" class="text-sm font-black text-white transition-colors">0,00 ₽</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Corner decorations -->
+          <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
+          <div class="absolute -left-8 -bottom-8 w-28 h-28 bg-blue-500/15 rounded-full blur-2xl"></div>
+        </div>
+
+        <!-- Expense Ratio Segment -->
+        <div class="glass-card rounded-3xl p-5 border border-white flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-0.5">Доля расходов</span>
+              <p class="text-[10px] text-gray-500 font-medium">Какая доля доходов уходит на траты</p>
+            </div>
+            <span id="expense-ratio" class="text-2xl font-black text-gray-950">0%</span>
+          </div>
+          <!-- Custom sleek bar -->
+          <div class="h-3 bg-gray-150/50 rounded-full p-0.5 border border-white overflow-hidden">
+            <div id="ratio-progress" class="h-full bg-blue-600 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(37,99,235,0.2)]" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Latest Transactions Mini-Section -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between px-1">
+            <h3 class="text-xs font-black uppercase tracking-widest text-gray-950">Последние операции</h3>
+            <button id="view-all-history-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-wider">Все</button>
+          </div>
+          
+          <div id="recent-transactions-list" class="space-y-3">
+            <!-- Dynamically populated in mobile.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: TRANSACTIONS HISTORY -->
+      <section id="screen-history" class="space-y-4 hidden animate-fade-up">
+        <div class="flex flex-col gap-3">
+          <h2 class="text-xl font-black text-gray-950 uppercase tracking-tight">История операций</h2>
+          
+          <!-- Filter pills carousel scrollable -->
+          <div class="flex items-center gap-1 bg-gray-150/50 p-1.5 rounded-full border border-gray-100 overflow-x-auto scrollbar-none">
+            <button id="filter-all" class="filter-btn shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-blue-600 bg-white shadow-sm transition-all">Все</button>
+            <button id="filter-day" class="filter-btn shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-gray-500 transition-all">День</button>
+            <button id="filter-week" class="filter-btn shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-gray-500 transition-all">Неделя</button>
+            <button id="filter-month" class="filter-btn shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-gray-500 transition-all">Месяц</button>
+            <button id="filter-custom" class="filter-btn shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-gray-500 transition-all flex items-center gap-1">
+              <span>Период</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </button>
+          </div>
+
+          <!-- Calendar custom period panel -->
+          <div id="custom-date-container" class="hidden grid grid-cols-2 gap-3 bg-white p-4 rounded-3xl border border-gray-100 animate-scale-in">
+            <div class="space-y-1">
+              <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 block ml-0.5">Старт</label>
+              <input type="date" id="filter-start-date" class="w-full text-xs font-semibold p-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 block ml-0.5">Финиш</label>
+              <input type="date" id="filter-end-date" class="w-full text-xs font-semibold p-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25">
+            </div>
+          </div>
+        </div>
+
+        <!-- History Transactions List container -->
+        <div id="full-transactions-list" class="space-y-3">
+          <!-- Populated in mobile.js -->
+        </div>
+      </section>
+
+      <!-- SCREEN 3: ANALYTICS & INSIGHTS -->
+      <section id="screen-analytics" class="space-y-5 hidden animate-fade-up">
+        <h2 class="text-xl font-black text-gray-950 uppercase tracking-tight">Аналитика</h2>
+        
+        <!-- Smart analysis recommendation card -->
+        <div class="glass-card rounded-[2rem] p-6 text-center border border-white flex flex-col items-center">
+          <div id="insight-icon" class="w-14 h-14 text-blue-500 mb-4 transition-all animate-float">
+            <!-- Icon SVG of analytics -->
+          </div>
+          <h3 id="insight-title" class="text-lg font-black text-gray-950 mb-2 uppercase tracking-tight">Диагностика...</h3>
+          <p id="insight-message" class="text-xs font-semibold text-gray-500 leading-relaxed max-w-[280px]">
+            Умная финансовая аналитика ваших расходов формируется в реальном времени.
+          </p>
+        </div>
+
+        <!-- Mini Category Stats Summary -->
+        <div class="glass-card rounded-[2rem] p-5 border border-white space-y-3">
+          <h4 class="text-[10px] font-black tracking-widest text-gray-400 uppercase">Основные расходы по категориям</h4>
+          <div id="category-distribution" class="space-y-3.5">
+            <!-- Categorized list populated in mobile.js -->
+            <div class="text-[11px] text-gray-400 text-center py-4 italic">Добавьте транзакции для анализа категорий</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: BUDGET & LIMITS -->
+      <section id="screen-limits" class="space-y-5 hidden animate-fade-up">
+        <h2 class="text-xl font-black text-gray-950 uppercase tracking-tight">Лимиты расходов</h2>
+        
+        <div class="glass-card rounded-[2rem] p-6 border border-white">
+          <form id="budget-form" class="space-y-5">
+            <p class="text-xs font-semibold text-gray-500 leading-relaxed">
+              Укажите сумму лимита и период контроля расходов. При превышении этого значения вы сразу же получите предупреждающий сигнал.
+            </p>
+
+            <div class="space-y-2">
+              <label class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-450 block">Период контроля</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <label class="cursor-pointer">
+                  <input type="radio" name="budget-period" value="day" class="peer sr-only">
+                  <div class="text-center p-3 rounded-2xl border border-gray-150/60 peer-checked:border-blue-650 peer-checked:bg-blue-50/70 peer-checked:text-blue-600 transition-all font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 select-none">
+                    День
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="budget-period" value="week" class="peer sr-only">
+                  <div class="text-center p-3 rounded-2xl border border-gray-150/60 peer-checked:border-blue-650 peer-checked:bg-blue-50/70 peer-checked:text-blue-600 transition-all font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 select-none">
+                    Неделя
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="budget-period" value="month" checked class="peer sr-only">
+                  <div class="text-center p-3 rounded-2xl border border-gray-150/60 peer-checked:border-blue-650 peer-checked:bg-blue-50/70 peer-checked:text-blue-600 transition-all font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 select-none">
+                    Месяц
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label for="budget-amount" class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-450 block">Сумма лимита</label>
+              <div class="relative">
+                <input type="number" id="budget-amount" name="budget-amount" step="0.01" required placeholder="0,00" class="w-full text-3xl font-black p-4 bg-gray-50 border border-gray-150/60 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white focus:outline-none transition-all tracking-tighter">
+                <span id="budget-currency-label" class="absolute right-4 top-1/2 -translate-y-1/2 font-black text-gray-400 text-sm uppercase">RUB</span>
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95">
+              Сохранить лимит
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar with Floating Add Button -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-150 py-3 px-6 z-40 safe-bottom shadow-[0_-5px_20px_rgba(0,0,0,0.02)] max-w-md mx-auto rounded-t-3xl">
+      <div class="flex items-center justify-between relative">
+        
+        <!-- Tab 1: Home -->
+        <button id="nav-home" class="flex flex-col items-center gap-1.5 text-gray-450 hover:text-gray-950 transition-all select-none w-12 tab-active">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="text-[8px] font-black uppercase tracking-wider">Обзор</span>
+        </button>
+
+        <!-- Tab 2: Operations -->
+        <button id="nav-history" class="relative flex flex-col items-center gap-1.5 text-gray-450 hover:text-gray-950 transition-all select-none w-12">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+          <span class="text-[8px] font-black uppercase tracking-wider">История</span>
+        </button>
+
+        <!-- CENTER FLOATING ACTION (+) BUTTON -->
+        <div class="relative -top-7 select-none">
+          <button id="mobile-add-btn" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/35 hover:from-blue-750 hover:to-indigo-750 transition-all active:scale-90 scale-105 active:rotate-45">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </button>
+        </div>
+
+        <!-- Tab 3: Analytics -->
+        <button id="nav-analytics" class="flex flex-col items-center gap-1.5 text-gray-450 hover:text-gray-950 transition-all select-none w-12">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><path d="M4.5 16.5c-1.5 1.25-2.5 3.5-2.5 3.5h19s-1-2.25-2.5-3.5L12 12z"/><path d="m12 12-1.9-5.8c-.2-.7-1.1-.7-1.3 0L7 12z"/><path d="m12 12 1.9-5.8c.2-.7 1.1-.7 1.3 0L17 12z"/></svg>
+          <span class="text-[8px] font-black uppercase tracking-wider">Статистика</span>
+        </button>
+
+        <!-- Tab 4: Limits -->
+        <button id="nav-limits" class="flex flex-col items-center gap-1.5 text-gray-450 hover:text-gray-950 transition-all select-none w-12">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span class="text-[8px] font-black uppercase tracking-wider">Лимиты</span>
+        </button>
+
+      </div>
+    </nav>
+
+    <!-- NEW TRANSACTION DRAWER / BOTTOM SHEET -->
+    <div id="mobile-add-drawer" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden transition-opacity duration-300">
+      
+      <!-- Bottom Sheet Drawer Content -->
+      <div id="mobile-add-sheet" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 max-h-[92vh] overflow-y-auto transform translate-y-full transition-transform duration-350 shadow-2xl safe-bottom max-w-md mx-auto">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-5 select-none">
+          <h2 class="text-xl font-black text-slate-950 tracking-tight">Новая операция</h2>
+          <button id="close-mobile-drawer" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 active:bg-gray-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+
+        <form id="mobile-transaction-form" class="space-y-5">
+          <!-- Type controller tabs -->
+          <div class="space-y-2">
+            <label class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 block ml-0.5">Тип операции</label>
+            <div class="grid grid-cols-2 gap-3 relative">
+              <label class="cursor-pointer">
+                <input type="radio" name="type" value="income" checked class="peer sr-only">
+                <div class="text-center p-3.5 rounded-2xl border border-gray-150/60 peer-checked:border-green-500 peer-checked:bg-green-50/70 peer-checked:text-green-600 transition-all font-black uppercase text-xs tracking-widest hover:bg-gray-50 select-none">
+                  Доход
+                </div>
+                
+                <!-- Drawer Popover Warning -->
+                <div id="income-alert-popover" class="hidden absolute z-[110] w-[260px] p-4 rounded-xl bg-red-650 text-white font-bold leading-normal text-[11px] shadow-xl animate-scale-in select-none pointer-events-none -top-[125%] left-1/2 -translate-x-1/2">
+                  <span class="block text-center select-none">Недостаточно средств на балансе, для внесения этой суммы предварительно нужно добавить операцию "Доход"</span>
+                  <!-- Animated Indicator Arrow -->
+                  <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[6px] border-x-transparent border-t-[8px] border-t-red-650 animate-arrow-down"></div>
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="type" value="expense" class="peer sr-only">
+                <div class="text-center p-3.5 rounded-2xl border border-gray-150/60 peer-checked:border-red-500 peer-checked:bg-red-50/70 peer-checked:text-red-600 transition-all font-black uppercase text-xs tracking-widest hover:bg-gray-50 select-none">
+                  Расход
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="space-y-2">
+            <label for="amount" class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 block ml-0.5">Сумма</label>
+            <div class="relative">
+              <input type="number" id="amount" name="amount" step="0.01" required placeholder="0,00" class="w-full text-3.5xl font-black p-4 bg-gray-50 border border-gray-150/60 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white focus:outline-none transition-all tracking-tighter">
+            </div>
+          </div>
+
+          <!-- Quick Category Tag Grid (Tappable categories!) -->
+          <div class="space-y-2">
+            <label class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 block ml-0.5">Быстрая категория</label>
+            <div class="grid grid-cols-4 gap-2 text-center" id="quick-categories">
+              <!-- Rendered dynamically of cute categories -->
+            </div>
+          </div>
+
+          <!-- Category input -->
+          <div class="space-y-2">
+            <label for="category" class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 block ml-0.5">Категория вручную</label>
+            <input type="text" id="category" name="category" required placeholder="Зарплата, Продукты, Кино, Аренда" class="w-full p-4 bg-gray-50 border border-gray-150/60 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all font-bold text-xs">
+          </div>
+
+          <!-- Date operations -->
+          <div class="space-y-2">
+            <label for="date" class="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 block ml-0.5">Дата операции</label>
+            <input type="date" id="date" name="date" required class="w-full p-4 bg-gray-50 border border-gray-150/60 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all font-bold text-xs cursor-pointer">
+          </div>
+
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-lg shadow-blue-500/10 active:scale-95">
+            Подтвердить операцию
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/mobile.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Finance Pulse",
+  "description": "A minimalist family budget calculator with SaaS-ready architecture, featuring real-time analytics, currency switching, and local storage persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
